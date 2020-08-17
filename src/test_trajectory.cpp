@@ -17,68 +17,31 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   JogControl jog(nh);
-
-  // ros::Publisher cmd_pub
-  //   = nh.advertise<trajectory_msgs::JointTrajectory>(
-  //       "/arm_controller/command", 10);
   
-  // ros::Rate rate(10);
+  ros::Rate rate(10);
 
-  // trajectory_msgs::JointTrajectory traj;
-  // trajectory_msgs::JointTrajectoryPoint point;
+  double diff = 0.1;
 
-  // // trajectory setting
-  // traj.joint_names.clear();
-  // traj.joint_names.push_back("elbow_1_joint");
-  // traj.joint_names.push_back("shoulder_1_joint");
-  // traj.joint_names.push_back("shoulder_2_joint");
-  // traj.joint_names.push_back("wrist_1_joint");
-  // traj.joint_names.push_back("wrist_2_joint");
-  // traj.joint_names.push_back("wrist_3_joint");
+  while(ros::ok())
+  {
+    tf::Transform tf_now = jog.getNowPose();
 
-  // // 1 point setting
-  // point.positions.resize(6, 0.0);
-  // point.velocities.resize(6, 0.0);
-  // point.accelerations.resize(6, 0.0);
-  // point.effort.resize(6, 0.0);
-  // point.time_from_start = ros::Duration(0.1);
+    tf::Vector3 vec = tf_now.getOrigin();
 
-  // traj.points.clear();
-  // traj.points.push_back(point);
+    vec.setY(vec.getY() + diff);
 
-  // float diff = M_PI / 10.0;
+    if(vec.getY() > 0.5)
+      diff = - 0.1;
+    else if(vec.getY() < -0.5)
+      diff = 0.1;
 
-  // while(ros::ok())
-  // {    
-  //   if(point.positions[0] > M_PI/2.0)
-  //   {
-  //     diff = -M_PI / 10.0;
-  //   }
-  //   else if(point.positions[0] < -M_PI/2.0)
-  //   {
-  //     diff = M_PI / 10.0;
-  //   }
+    tf_now.setOrigin(vec);
 
-  //   point.positions[0] += diff;
+    jog.moveTrajectory(tf_now);
 
-  //   traj.points[0] = point;
-
-  //   cmd_pub.publish(traj); 
-
-  //   printf("\r(");
-  //   for(int i=0; i<6; i++)   
-  //   {
-  //     printf("%f, ", traj.points[0].positions[i]);
-  //   }
-  //   printf(")");
-  //   fflush(stdout);
-
-  //   // loop spin
-  //   rate.sleep();
-  //   ros::spinOnce();
-  // }
-
-  ros::spin();
+    rate.sleep();
+    ros::spinOnce();
+  }  
 
   return EXIT_SUCCESS;
 }
